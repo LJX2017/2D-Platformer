@@ -10,6 +10,7 @@ var has_double_jumped = false
 
 var animation_locked: bool = false
 var direction: Vector2 = Vector2.ZERO
+var was_in_air: bool = false
 
 func _physics_process(delta: float) -> void:
 	# Add the gravity.
@@ -18,11 +19,14 @@ func _physics_process(delta: float) -> void:
 
 	if is_on_floor():
 		has_double_jumped = false
+		if was_in_air:
+			land()
+		was_in_air = false
 
 	# Handle jump.
 	if Input.is_action_just_pressed("ui_accept"):
 		if is_on_floor():
-			velocity.y = JUMP_VELOCITY
+			jump()
 		elif !has_double_jumped:
 			velocity.y = double_jump_velocity
 			has_double_jumped = true
@@ -52,3 +56,17 @@ func update_facing_direction():
 		animated_sprite.flip_h = true
 	else:
 		animated_sprite.flip_h = false
+		
+func jump():
+	velocity.y = JUMP_VELOCITY
+	was_in_air = true
+	animated_sprite.play("jump_start")
+	animation_locked = true
+	
+func land():
+	animated_sprite.play("jump_end")
+	animation_locked = true
+
+
+func _on_animated_sprite_2d_animation_finished() -> void:
+	animation_locked = false
